@@ -61,6 +61,10 @@ export default class Web3Service extends UnlockService {
    * https://github.com/HardlyDifficult/hardlydifficult-ethereum-contracts/blob/master/src/utils/create2.js#L29
    */
   async generateLockAddress(owner, lock, network) {
+    if (!this.networks[network]) {
+      throw new Error(`Missing config for ${network}`)
+    }
+
     const unlockContact = await this.getUnlockContract(
       this.networks[network].unlockAddress,
       this.providerForNetwork(network)
@@ -70,7 +74,7 @@ export default class Web3Service extends UnlockService {
       // Compute the hash identically to v5 (TODO: extract this?)
       const lockSalt = utils.sha3(utils.utf8ToHex(lock.name)).substring(2, 26) // 2+24
       return this._create2Address(
-        this.unlockContractAddress,
+        this.networks[network].unlockAddress,
         templateAddress,
         owner,
         lockSalt
@@ -83,8 +87,8 @@ export default class Web3Service extends UnlockService {
    * Refreshed the balance of the account
    * @param {*} account
    */
-  refreshAccountBalance(account) {
-    return this.getAddressBalance(account.address)
+  refreshAccountBalance(account, network) {
+    return this.getAddressBalance(account.address, network)
   }
 
   /**
